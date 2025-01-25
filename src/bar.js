@@ -51,16 +51,33 @@ export default class Bar {
         this.invalid = this.task.invalid;
         this.height = this.gantt.options.bar_height;
         this.image_size = this.height - 5;
-        this.task._start = new Date(this.task.start);
-        this.task._end = new Date(this.task.end);
+        if(!this.task._start)
+            this.task._start = new Date(this.task.start);
+        this.task._end = new Date(this.task.end);        
+
+        if(this.task.baseline){
+            if(!this.task._baseline_start)
+                this.task._baseline_start = new Date(this.task.baseline_start);
+            this.task._baseline_end = new Date(this.task.baseline_end);
+        }
+
         this.compute_x();
         this.compute_y();
         this.compute_duration();
+        this.compute_baseline_duration();
         this.corner_radius = this.gantt.options.bar_corner_radius;
         this.width = this.gantt.config.column_width * this.duration;
         if (!this.task.progress || this.task.progress < 0)
             this.task.progress = 0;
         if (this.task.progress > 100) this.task.progress = 100;
+
+        if(this.task.baseline){            
+            this.baseline_width = this.gantt.config.column_width * this.baseline_duration;
+            if (!this.task.baseline_progress)
+                this.task.baseline_progress = 0;
+            this.task.baseline_progress = Math.max(Math.min(this.task.baseline_progress, 100),0);    
+        } 
+
     }
 
     prepare_helpers() {
@@ -102,6 +119,11 @@ export default class Bar {
         if (this.task.thumbnail) {
             this.draw_thumbnail();
         }
+        if(this.gantt.options.show_baseline)
+        {
+            this.draw_baselinebar();
+        }
+        
     }
 
     draw_bar() {
@@ -117,10 +139,33 @@ export default class Bar {
         });
         if (this.task.color) this.$bar.style.fill = this.task.color;
         animateSVG(this.$bar, 'width', 0, this.width);
-
+        
         if (this.invalid) {
             this.$bar.classList.add('bar-invalid');
         }
+    }
+    draw_baselinebar() {
+        if(this.task.baseline)
+        {
+            this.$bar_baseline = createSVG('rect', {
+                x: this.baseline_x,
+                y: this.baseline_y,
+                width: this.baseline_width,
+                height: 10,
+                rx: this.corner_radius,
+                ry: this.corner_radius,
+                class: 'bar baseline',
+                append_to: this.bar_group,
+            });
+            if (this.task.baseline_color) 
+            {
+                this.$bar_baseline.style.fill = this.task.baseline_color;
+            }else
+            {
+                this.$bar_baseline.style.fill = "#b686ea";
+            }
+            animateSVG(this.$bar_baseline, 'width', 0, this.baseline_width);
+        }        
     }
 
     draw_expected_progress_bar() {
@@ -421,6 +466,8 @@ export default class Bar {
         this.update_handle_position();
         this.date_changed();
         this.compute_duration();
+        if(this.gantt.options.show_baseline)
+            this.compute_baseline_duration()
 
         if (this.gantt.options.show_expected_progress) {
             this.update_expected_progressbar_position();
@@ -581,6 +628,15 @@ export default class Bar {
         // }
 
         this.x = x;
+
+        if(this.task.baseline){
+            const m_baseline_start = this.task._baseline_start;
+
+            const diff =
+                date_utils.diff(m_baseline_start, gantt_start, this.gantt.config.unit) /
+                this.gantt.config.step;
+            this.baseline_x = diff * column_width;
+        }
     }
 
     compute_y() {
@@ -588,6 +644,15 @@ export default class Bar {
             this.gantt.config.header_height +
             this.gantt.options.padding / 2 +
             this.task._index * (this.height + this.gantt.options.padding);
+
+        if(this.task.baseline  && this.gantt.options.show_baseline){
+            this.baseline_y =
+            this.gantt.config.header_height +
+            this.gantt.options.padding / 2 +
+            this.task._index * (this.height + this.gantt.options.padding);
+
+            this.baseline_y = this.baseline_y + this.height - 4;
+        }
     }
 
     compute_duration() {
@@ -617,7 +682,8 @@ export default class Bar {
                 duration_in_days + 'd',
                 this.gantt.config.unit,
             ) / this.gantt.config.step;
-
+        
+       
         this.actual_duration_raw =
             date_utils.convert_scales(
                 actual_duration_in_days + 'd',
@@ -625,6 +691,47 @@ export default class Bar {
             ) / this.gantt.config.step;
 
         this.ignored_duration_raw = this.duration - this.actual_duration_raw;
+    }
+
+    compute_baseline_duration() {
+        if(!this.task.baseline || !this.gantt.options.show_baseline){
+            return;
+        }
+        let actual_duration_in_days = 0,
+            duration_in_days = 0;
+        for (
+            let d = new Date(this.task._baseline_start);
+            d < this.task._baseline_end;
+            d.setDate(d.getDate() + 1)
+        ) {
+            duration_in_days++;
+            if (
+                !this.gantt.config.ignored_dates.find(
+                    (k) => k.getTime() === d.getTime(),
+                ) &&
+                (!this.gantt.config.ignored_function ||
+                    !this.gantt.config.ignored_function(d))
+            ) {
+                actual_duration_in_days++;
+            }
+        }
+        this.task.actual_baseline_duration = actual_duration_in_days;
+        this.task.ignored_baseline_duration = duration_in_days - actual_duration_in_days;
+
+        this.baseline_duration =
+            date_utils.convert_scales(
+                duration_in_days + 'd',
+                this.gantt.config.unit,
+            ) / this.gantt.config.step;
+        
+       
+        this.actual_baseline_duration_raw =
+            date_utils.convert_scales(
+                actual_duration_in_days + 'd',
+                this.gantt.config.unit,
+            ) / this.gantt.config.step;
+
+        this.ignored_baseline_duration_raw = this.baseline_duration - this.actual_baseline_duration_raw;
     }
 
     update_attr(element, attr, value) {

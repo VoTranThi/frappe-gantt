@@ -23,9 +23,9 @@
     ],
     "exports": {
         ".": {
+            "style": "./dist/frappe-gantt.css",
             "require": "./dist/frappe-gantt.umd.js",
-            "import": "./dist/frappe-gantt.es.js",
-            "style": "./dist/frappe-gantt.css"
+            "import": "./dist/frappe-gantt.es.js"            
         }
     },
     "keywords": [
@@ -48,12 +48,17 @@
         "eslint-plugin-prettier": "^2.6.0",
         "postcss-nesting": "^12.1.2",
         "prettier": "3.2.5",
-        "vite": "^5.2.10"
+        "vite": "^6.0.11"
     },
     "eslintIgnore": [
         "dist"
     ],
     "sideEffects": [
         "*.css"
-    ]
+    ],
+    "dependencies": {
+        "add": "^2.0.6",
+        "rollup-plugin-terser": "^7.0.2",
+        "yarn": "^1.22.22"
+    }
 }

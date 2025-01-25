@@ -13,7 +13,7 @@ function formatWeek(d, ld, lang) {
 }
 
 const DEFAULT_VIEW_MODES = [
-    {
+    /*{
         name: 'Hour',
         padding: '7d',
         step: '1h',
@@ -50,7 +50,7 @@ const DEFAULT_VIEW_MODES = [
                     : date_utils.format(d, 'D', lang)
                 : '',
         upper_text_frequency: 2,
-    },
+    },*/
     {
         name: 'Day',
         padding: '7d',

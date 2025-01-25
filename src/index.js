@@ -15,7 +15,7 @@ export default class Gantt {
         this.setup_options(options);
         this.setup_tasks(tasks);
         this.change_view_mode();
-        this.bind_events();
+        this.bind_events();    
     }
 
     setup_wrapper(element) {
@@ -86,6 +86,11 @@ export default class Gantt {
                     '--gv-' + name,
                     setting + 'px',
                 );
+        }
+
+        if(this.options.height)
+        {
+            this.$container.style.setProperty('height',this.options.height );
         }
 
         this.config = {
@@ -196,6 +201,55 @@ export default class Gantt {
                     task.id = `${task.id}`;
                 }
 
+                // baseline
+                if(task.baseline && this.options.show_baseline)
+                {
+                    if (!task.baseline_start) {
+                        console.error(
+                            `task "${task.id}" doesn't have a baseline start date`,
+                        );
+                        return false;
+                    }
+    
+                    task._baseline_start = date_utils.parse(task.baseline_start);
+                    if (task.baseline_end === undefined && task.baseline_duration !== undefined) {
+                        task.baseline_end = task._baseline_start;
+                        let durations = task.baseline_duration.split(' ');
+    
+                        durations.forEach((tmpDuration) => {
+                            let { duration, scale } =
+                                date_utils.parse_duration(tmpDuration);
+                            task.baseline_end = date_utils.add(task.baseline_end, duration, scale);
+                        });
+                    }
+                    if (!task.baseline_end) {
+                        console.error(`task "${task.id}" doesn't have an baseline end date`);
+                        return false;
+                    }
+                    task._baseline_end = date_utils.parse(task.baseline_end);
+    
+                    let diff = date_utils.diff(task._baseline_end, task._baseline_start, 'year');
+                    if (diff < 0) {
+                        console.error(
+                            `Baseline start of task can't be after end of task: in task "${task.id}"`,
+                        );
+                        return false;
+                    }
+    
+                    // make task invalid if duration too large
+                    if (date_utils.diff(task._baseline_end, task._baseline_start, 'year') > 10) {
+                        console.error(
+                            `the duration baseline of  task "${task.id}" is too long (above ten years)`,
+                        );
+                        return false;
+                    }
+                    // if hours is not set, assume the last day is full day
+                    // e.g: 2018-09-09 becomes 2018-09-09 23:59:59
+                    const task_end_values = date_utils.get_date_values(task._baseline_end);
+                    if (task_end_values.slice(3).every((d) => d === 0)) {
+                        task._baseline_end = date_utils.add(task._baseline_end, 24, 'hour');
+                    }
+                }
                 return task;
             })
             .filter((t) => t);
@@ -244,6 +298,11 @@ export default class Gantt {
             this.options.scroll_to = old_scroll_op;
         }
         this.trigger_event('view_change', [mode]);
+
+        if(this.options.height)
+        {
+            this.$container.style.setProperty('height',this.options.height );
+        }
     }
 
     update_view_scale(mode) {
@@ -1562,9 +1621,9 @@ export default class Gantt {
 }
 
 Gantt.VIEW_MODE = {
-    HOUR: DEFAULT_VIEW_MODES[0],
-    QUARTER_DAY: DEFAULT_VIEW_MODES[1],
-    HALF_DAY: DEFAULT_VIEW_MODES[2],
+    //HOUR: DEFAULT_VIEW_MODES[0],
+    //QUARTER_DAY: DEFAULT_VIEW_MODES[1],
+    //HALF_DAY: DEFAULT_VIEW_MODES[2],
     DAY: DEFAULT_VIEW_MODES[3],
     WEEK: DEFAULT_VIEW_MODES[4],
     MONTH: DEFAULT_VIEW_MODES[5],
