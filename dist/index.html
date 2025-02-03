@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Simple Gantt</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #ccc;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+
+        /* custom class */
+        .gantt .bar-milestone .bar {
+            fill: tomato;
+        }
+
+        .heading {
+            text-align: center;
+        }
+
+        .gantt-target.dark {
+            background-color: #252525;
+        }
+
+        .d-none {
+            display: none;
+        }
+    </style>
+    <link rel="stylesheet" href="unminified/frappe-gantt.css" />
+    <!--
+            <script src="unminified/frappe-gantt.js" type="module"></script>
+        -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="container d-none">
+        <h2 class="heading">
+            Interactive Gantt Chart entirely made in SVG!
+        </h2>
+        <div class="gantt-target"></div>
+    </div>
+
+    <div class="container">
+        <h2 class="heading">
+            Gantt Customs task baseline.
+        </h2>
+        <button id="btnTest">hide baseline bar.</button>
+        <div class="fb-1ff56390" id="sideheader">
+            <form class="fb-8e5caa14 d-none" id="sideheader-form">
+                <div class="input-switch">
+                    <label for="toggle-today">Scroll to today: </label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-today" checked="">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="input-switch">
+                    <label for="toggle-view-mode">Change view mode: </label>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-view-mode" checked="">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </form>
+        </div>
+
+    </div>
+    <script type="module">
+        //import Gantt from "./unminified/frappe-gantt.js";     
+        import Gantt from "./minified/frappe-gantt.min.js";     
+
+        // gantt with task baseline start 
+        const tasksSmall = [
+            {
+                "start": "2025-01-21T17:00:00.000Z",
+                "end": "2025-01-25T17:00:00.000Z",
+                "name": "Redesign website",
+                "id": "Task 0",
+                "progress": 50,
+                "important": true,
+                "description": "A website redesign is a comprehensive overhaul of an existing website. It involves updating the visual design, user interface, and functionality to improve the user experience and achieve specific business goals. This process typically includes conducting user research, creating wireframes and prototypes, and developing a new website design. The goal is to create a more modern, efficient, and user-friendly website.",
+                "custom_class": "barBlue",
+                "color": "#ff5752",
+                "color_progress": "#2fc7f7",
+                "baseline": true,
+                "baseline_start": "2025-01-20T17:00:00.000Z",
+                "baseline_end": "2025-01-24T17:00:00.000Z",
+                "baseline_progress": 20,
+                //"baseline_color": "#BFDBFE",
+            },
+            {
+                "start": "2025-01-25T17:00:00.000Z",
+                "duration": "6d",
+                "name": "Write new content",
+                "id": "Task 1",
+                //"progress": 70,
+                "important": true,
+                "dependencies": "Task 0",                
+                "baseline": true,
+                "baseline_start": "2025-01-22T17:00:00.000Z",
+                "baseline_end": "2025-01-26T17:00:00.000Z",
+            },
+            {
+                "start": "2025-01-26T17:00:00.000Z",
+                "duration": "2d",
+                "name": "Apply new styles",
+                "id": "Task 2",
+                //"progress": 40,
+                important: true,
+                "baseline": true,
+                "baseline_start": "2025-01-20T17:00:00.000Z",
+                "baseline_end": "2025-01-28T17:00:00.000Z",
+                //"baseline_color": "#BFDBFE",
+            },
+            {
+                "start": "2025-01-18T17:00:00.000Z",
+                "end": "2025-01-22T17:00:00.000Z",
+                "name": "Review",
+                "id": "Task 3",
+                "progress": 40
+            },
+        ];
+
+        let task_onhover;
+        const sideheader = new Gantt('#sideheader', tasksSmall, {
+            //scroll_to: daysSince(-20),
+            height: "90vh",
+            readonly:true,
+            show_baseline: true,
+            view_mode_select: true,
+            infinite_padding: false,
+            view_mode: 'Day', // Day, Week, Month, Year, 'Half Day', 'Quarter Day', 'Hour'
+            popup_on : 'hover', // hover, click
+            // view_mode_padding: { DAY: '3d' },
+            // popup: false,
+            // scroll_to: 'today',
+            // view_mode_select: true,
+            // dates_readonly: true,
+            // today_button: false,
+            // readonly: true,
+            // lines: 'vertical',
+            // lower_text: (date) => date.getDay(),
+            // upper_text: (date, view_mode, def) => def,
+            on_click: (task) => {
+                //console.log('Click on task:', task);
+            },
+            // on_double_click: (task) => {
+            //   console.log("Double Click", task);
+            // },
+            // on_date_change: (task, start, end) => {
+            //   console.log("Date change", task, start, end);
+            // },
+            // on_progress_change: (task, progress) => {
+            //   console.log("Progress Change", task, progress);
+            // },
+            // on_view_change: (mode) => {
+            //   console.log("View Change", mode);
+            // },
+            on_hover: (task, x, y) => {
+                if(!task_onhover || task_onhover !== task)
+                {
+                    task_onhover = task;
+                    //console.log("Hover on task", task);
+                }             
+            },
+            popup: (ctx) => {
+                //console.log(ctx);
+                ctx.set_title(ctx.task.name);
+                let title = ctx.get_title();
+                title.style.border = '0.5px solid black';
+                title.style.borderRadius = '1.5px';
+                title.style.padding = '3px 5px ';
+                title.style.backgroundColor = 'black';
+                title.style.opacity = '0.85';
+                title.style.color = 'white';
+                //title.style.width = 'fit-content';
+                title.onclick = () => {
+                    //let ans = prompt('New Title: ');
+                    //if (ans)
+                    //ctx.set_title(ans);
+                };
+
+                if (ctx.task.description) {
+                    ctx.set_subtitle(ctx.task.description);
+                    let subtitle = ctx.get_subtitle();
+                    subtitle.style.maxWidth = '250px';
+                }
+                else
+                    ctx.set_subtitle('');
+
+                //const startDate = ctx.task._start.toLocaleDateString('vi-VN');
+                //const endDate = ctx.task._end.toLocaleDateString('vi-VN');
+                const startDate = DateToStringFormat(ctx.task._start, "dd/MM/yyyy");
+                const endDate = DateToStringFormat(ctx.task._end, "dd/MM/yyyy");               
+
+                //console.log(ctx.task);
+                let detailsHTML = `<em>Duration</em>: ${ctx.task.actual_duration} days
+                        <br/><strong>Dates</strong>: ${startDate} - ${endDate}
+                        `;
+                if(ctx.task.baseline)
+                {
+                    const baselineStart = DateToStringFormat(ctx.task._baseline_start, "dd/MM/yyyy");
+                    const baselineEnd = DateToStringFormat(ctx.task._baseline_end, "dd/MM/yyyy");
+
+                    const variance = getTaskScheduleVariance(ctx.task);
+
+                    detailsHTML += `<br/><em>Baseline Duration</em>: ${ctx.task.actual_duration} days
+                        <br/><strong>Baseline Dates</strong>: ${baselineStart} - ${baselineEnd}
+                        `;
+                    
+                    if(variance)
+                        detailsHTML += `<br/><strong>${variance}</strong>`;
+
+                }
+
+                ctx.set_details(detailsHTML);
+
+                //ctx.set_details(`<em>Duration</em>: ${ctx.task.actual_duration} days<br/><em>Dates</em>: ${ctx.task._start.toLocaleDateString('en-US')} - ${ctx.task._end.toLocaleDateString('en-US')}`,);
+
+                let details = ctx.get_details();
+                details.style.lineHeight = '1.75';
+                details.style.margin = '10px 4px';
+
+                ////set default classname
+                //if (ctx.task.customClassName) {
+                //    const bar = ctx.chart.bars.find(({ task: t }) => t.id === ctx.task.id,).$bar;
+                //    $(bar.$bar).addClass(ctx.task.customClassName);
+                //}
+
+                if (!ctx.chart.options.readonly) {
+                    if (!ctx.chart.options.readonly_progress) {
+
+                        //add button action
+                        ctx.add_action('Set Color', (task, chart) => {
+                            const bar = chart.bars.find(({ task: t }) => t.id === task.id,).$bar;
+                            bar.style.fill = `hsla(${~~(360 * Math.random())}, 70%,  72%, 0.8)`;
+                        });
+
+
+                    }
+                }
+            },
+        });
+
+        function updateOptions(label, value) {
+            sideheader.update_options({
+                [label]: value,
+            });
+        }
+
+        function random(begin = 10, end = 90, multiple = 10) {
+            let k;
+            do {
+                k = Math.floor(Math.random() * 100);
+            }
+            while (k < begin || k > end || k % multiple !== 0);
+            return k;
+        }
+        function daysSince(dx) {
+            let today = new Date();
+            today.setHours(0, 0, 0, 0);
+            today = today.valueOf();
+            new Date(today + dx * 86400000);
+        }
+
+        function adjustContainerHeight() {
+            const svgHeight = $('.gantt').height();
+            const $container = $('.gantt-container');
+            const containerHeight = $container.height();
+
+            /*
+            if (containerHeight === svgHeight) {
+                $container.height(svgHeight + 50);
+            }
+            */
+            const viewportHeight = window.innerHeight; 
+            //$container.height(viewportHeight-100 );
+
+            $container.css("height", "100vh");
+            
+        }
+
+        function DateToStringFormat(ngay, dinhDang) {
+            if (!(ngay instanceof Date) || isNaN(ngay.getTime())) {
+                throw new Error("Invalid date object");
+            }
+
+            const date = ngay;
+            const replacements = {
+                'dd': () => String(date.getDate()).padStart(2, '0'),
+                'MM': () => String(date.getMonth() + 1).padStart(2, '0'),
+                'MMM': () => date.toLocaleString('en-US', { month: 'short' }),
+                'yyyy': () => String(date.getFullYear()),
+                'yy': () => String(date.getFullYear()).slice(-2),
+                'HH': () => String(date.getHours()).padStart(2, '0'),
+                'hh': () => {
+                    const hours = date.getHours();
+                    const twelveHours = hours % 12 || 12;
+                    return String(twelveHours).padStart(2, '0');
+                },
+                'mm': () => String(date.getMinutes()).padStart(2, '0'),
+                'ss': () => String(date.getSeconds()).padStart(2, '0'),
+            };
+
+            const regex = /(yyyy|MMM|yy|MM|dd|HH|hh|mm|ss)/g;
+            return dinhDang.replace(regex, (match) => replacements[match]());
+        }
+
+        function getTaskScheduleVariance(task) {
+            if(!task.baseline) return "";
+
+            var diffInMilliseconds =  task._end - task._baseline_end;
+            var delayinDays = Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24));
+            
+            if(delayinDays > 0)
+                return `<div style=color:red >${delayinDays} days delayed </div>`;
+            else if(delayinDays < 0)
+                return `<div style=color:green >${Math.abs(delayinDays)} days ahead </div>`;
+            else
+                return "On schedule";            
+        }
+
+        $('#toggle-today').on('change', function () {
+            const isChecked = $(this).prop('checked');
+            updateOptions('today_button', isChecked);
+        });
+
+        $('#toggle-view-mode').on('change', function () {
+            const isChecked = $(this).prop('checked');
+            updateOptions('view_mode_select', isChecked);
+        });
+
+        let isShowBaseline = true;
+        $('#btnTest').on('click', function () {     
+            
+            isShowBaseline = !isShowBaseline;
+            updateOptions('show_baseline', isShowBaseline);
+        });
+
+        //adjustContainerHeight();
+        //window.addEventListener('resize', adjustContainerHeight);
+        //setInterval(adjustContainerHeight, 5000);
+
+    </script>
+</body>
+
+</html>

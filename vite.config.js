@@ -4,7 +4,7 @@ import { terser } from 'rollup-plugin-terser'; // Import plugin minify đúng c�
 
 export default defineConfig({
     build: {
-        minify: false, // Tắt minify
+        minify: true, // Tắt minify
         sourcemap: true,
         lib: {
             entry: resolve(__dirname, 'src/index.js'),
